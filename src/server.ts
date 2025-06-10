@@ -11,6 +11,7 @@ import {
 } from "discord.js";
 import { commands, handleInteraction } from './commands/CommandHandler';
 import * as path from 'path';
+import { startRedisKeyExpiredHandler } from './handler/RedisKeyExpiredHandler';
 
 const envPath = path.resolve(process.cwd(), '.env');
 console.log('Looking for .env file at:', envPath);
@@ -75,3 +76,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
 });
 
 client.login(process.env.DISCORD_TOKEN);
+startRedisKeyExpiredHandler(client)
+    .then(() => console.log('Redis Key Expired Handler started successfully.'))
+    .catch(error => console.error('Failed to start Redis Key Expired Handler:', error));

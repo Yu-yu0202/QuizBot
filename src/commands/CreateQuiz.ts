@@ -51,15 +51,15 @@ async function saveToRedis(data: QuizData, ttlStr: string, guildId: string): Pro
   const ttl = parseTTL(ttlStr);
   const key = `quiz:${guildId}:${data.id}`;
   
-  await redis.hset(key, {
+  await redis.hmset(key, {
     title: data.title,
     description: data.description,
     choices: JSON.stringify(data.choices)
   });
   await redis.expire(key, ttl);
   await redis.set(`${key}:answer`, data.answer);
-  await redis.set(`${key}:answered`, JSON.stringify([]));
   await redis.expire(`${key}:answer`, ttl);
+  await redis.sadd(`${key}:answered`, 'null');
   await redis.expire(`${key}:answered`, ttl);
 }
 
@@ -223,41 +223,34 @@ export async function handleQuizAnswer(interaction: ButtonInteraction): Promise<
   const answeredKey = `${key}:answered`;
   const userId = interaction.user.id;
   
-  try {
-    await redis.del(answeredKey);
-    const alreadyAnswered = await redis.sismember(answeredKey, userId);
-    
-    if (alreadyAnswered) {
-      await interaction.reply({ content: "既に回答済みです。", flags: 'Ephemeral' });
-      return;
-    }
-    
-    const quizData = await redis.hgetall(key);
-    if (!quizData || Object.keys(quizData).length === 0) {
-      await interaction.reply({ content: "このクイズは存在しません。", flags: 'Ephemeral' });
-      return;
-    }
-    
-    const isCorrect = quizData.answer === choice;
-    if (isCorrect) {
-      await redis.sadd(answeredKey, userId);
-      const ttl = await redis.ttl(key);
-      if (ttl > 0) {
-        await redis.expire(answeredKey, ttl);
-      }
-    }
-    
-    await interaction.reply({
-      content: isCorrect ? "✅ 正解です！" : "❌ 不正解です。",
-      flags: 'Ephemeral'
-    });
-  } catch (error) {
-    console.error('クイズ回答処理エラー:', error);
-    await interaction.reply({ 
-      content: "回答の処理中にエラーが発生しました。", 
-      flags: 'Ephemeral' 
-    });
+  const alreadyAnswered = await redis.sismember(answeredKey, userId);
+  if (alreadyAnswered) {
+    await interaction.reply({ content: "既に回答済みです。", flags: 'Ephemeral' });
+    return;
   }
+  
+  const quizData = await redis.hgetall(key);
+  if (!quizData || Object.keys(quizData).length === 0) {
+    await interaction.reply({ content: "このクイズは存在しません。", flags: 'Ephemeral' });
+    return;
+  }
+  
+  const answer = await redis.get(`${key}:answer`);
+  if (!answer) {
+    await interaction.reply({ content: "クイズの正解が見つかりません。", flags: 'Ephemeral' });
+    return;
+  }
+  
+  console.log('Debug - Answer:', answer, 'Choice:', choice);
+  console.log('Debug - Types:', typeof answer, typeof choice);
+  
+  const isCorrect = String(answer) === String(choice);
+  if (isCorrect) await redis.sadd(answeredKey, userId);
+  
+  await interaction.reply({
+    content: isCorrect ? "✅ 正解です！" : "❌ 不正解です。",
+    flags: 'Ephemeral'
+  });
 }
 
 export async function handleQuizExpired(key: string, client: Client) {
