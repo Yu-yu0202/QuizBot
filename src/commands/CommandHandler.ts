@@ -7,7 +7,7 @@ import {
 } from "discord.js";
 import { ping } from "./ping";
 import { CreateQuiz, handleCreateQuizModal, handleQuizAnswer } from "./CreateQuiz";
-
+import { execute as Setting } from "./Setting";
 export const commands: ApplicationCommandDataResolvable[] = [
   new SlashCommandBuilder()
     .setName('ping')
@@ -16,6 +16,10 @@ export const commands: ApplicationCommandDataResolvable[] = [
   new SlashCommandBuilder()
     .setName('createquiz')
     .setDescription('新しいクイズを作成します')
+    .toJSON(),
+  new SlashCommandBuilder()
+    .setName('setting')
+    .setDescription('ボットの設定を行います')
     .toJSON()
 ];
 
@@ -27,6 +31,9 @@ export async function handleInteraction(interaction: ChatInputCommandInteraction
         break;
       case 'createquiz':
         await CreateQuiz(interaction);
+        break;
+      case 'setting':
+        await Setting(interaction);
         break;
     }
   } else if (interaction.isModalSubmit()) {
