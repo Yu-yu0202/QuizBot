@@ -76,6 +76,4 @@ client.on(Events.InteractionCreate, async (interaction) => {
 });
 
 client.login(process.env.DISCORD_TOKEN);
-startRedisKeyExpiredHandler(client)
-    .then(() => console.log('Redis Key Expired Handler started successfully.'))
-    .catch(error => console.error('Failed to start Redis Key Expired Handler:', error));
+(async () => {await startRedisKeyExpiredHandler(client);})();
