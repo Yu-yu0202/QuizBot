@@ -3,6 +3,23 @@ import { Redis } from 'ioredis';
 
 const redis = new Redis();
 
+export const data = new SlashCommandBuilder()
+    .setName('setting')
+    .setDescription('ボットの設定を行います')
+    .addSubcommand(subcommand =>
+        subcommand
+            .setName('quiz-channel')
+            .setDescription('クイズを送信するチャンネルを設定します')
+            .addChannelOption(option =>
+                option
+                    .setName('channel')
+                    .setDescription('クイズを送信するチャンネル')
+                    .setRequired(true)
+                    .addChannelTypes(ChannelType.GuildText)
+            )
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
+
 export async function execute(interaction: ChatInputCommandInteraction) {
     if (!interaction.guildId) {
         await interaction.reply({ content: 'このコマンドはサーバー内でのみ使用できます。', ephemeral: true });
@@ -10,6 +27,13 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     }
 
     const subcommand = interaction.options.getSubcommand();
+    if (!subcommand) {
+        await interaction.reply({ 
+            content: 'サブコマンドを指定してください。\n使用可能なサブコマンド:\n- `quiz-channel`: クイズを送信するチャンネルを設定', 
+            ephemeral: true 
+        });
+        return;
+    }
 
     if (subcommand === 'quiz-channel') {
         const channel = interaction.options.getChannel('channel');
