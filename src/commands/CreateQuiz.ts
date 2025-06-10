@@ -15,11 +15,12 @@ import {
 } from "discord.js";
 import Redis from "ioredis";
 import { v4 as uuidv4 } from "uuid";
-import dotenv from "dotenv";
+import * as dotenv from 'dotenv';
+import * as path from 'path';
 
-dotenv.config();
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+
 const redis = new Redis();
-const QUIZ_CHANNEL_ID = process.env.QUIZ_CHANNEL_ID;
 
 interface QuizData {
   id: string;
@@ -37,6 +38,7 @@ function parseTTL(ttlString: string): number {
   while ((match = regex.exec(ttlString)) !== null) {
     const value = parseInt(match[1]);
     switch (match[2]) {
+      case 's': seconds += value; break;
       case 'm': seconds += value * 60; break;
       case 'h': seconds += value * 3600; break;
       case 'd': seconds += value * 86400; break;
@@ -45,18 +47,19 @@ function parseTTL(ttlString: string): number {
   }
   return seconds;
 }
-async function saveToRedis(data: QuizData, ttlStr: string): Promise<void> {
+async function saveToRedis(data: QuizData, ttlStr: string, guildId: string): Promise<void> {
   const ttl = parseTTL(ttlStr);
-  const key = `quiz:${data.id}`;
+  const key = `quiz:${guildId}:${data.id}`;
   
-  await redis.hmset(key, {
+  await redis.hset(key, {
     title: data.title,
     description: data.description,
-    answer: data.answer,
     choices: JSON.stringify(data.choices)
   });
-  
   await redis.expire(key, ttl);
+  await redis.set(`${key}:answer`, data.answer);
+  await redis.set(`${key}:answered`, JSON.stringify([]));
+  await redis.expire(`${key}:answer`, ttl);
   await redis.expire(`${key}:answered`, ttl);
 }
 
@@ -141,9 +144,23 @@ export async function handleCreateQuizModal(interaction: ModalSubmitInteraction,
   };
 
   try {
-    await saveToRedis(quizData, ttl);
+    const guildId = interaction.guildId;
+    if (!guildId) {
+      throw new Error('ギルドIDが見つかりません。');
+    }
+
+    await saveToRedis(quizData, ttl, guildId);
     
-    const quizChannel = await client.channels.fetch(QUIZ_CHANNEL_ID!);
+    const quizChannelId = await redis.get(`quiz_channel:${guildId}`);
+    if (!quizChannelId) {
+      await interaction.reply({ 
+        content: 'このサーバーではクイズチャンネルが設定されていません。管理者に `/setting quiz-channel` コマンドで設定してもらってください。', 
+        ephemeral: true 
+      });
+      return;
+    }
+
+    const quizChannel = await client.channels.fetch(quizChannelId);
     if (!quizChannel?.isTextBased() || !(quizChannel instanceof TextChannel)) {
       throw new Error('クイズチャンネルが見つからないか、テキストチャンネルではありません。');
     }
@@ -157,7 +174,7 @@ export async function handleCreateQuizModal(interaction: ModalSubmitInteraction,
 
     const buttons = choices.map((choice, index) => 
       new ButtonBuilder()
-        .setCustomId(`quiz:${quizData.id}:answer:${index}:${choice}`)
+        .setCustomId(`quiz:${quizData.id}:answer:${index}:${choice}:${guildId}`)
         .setLabel(choice)
         .setStyle(ButtonStyle.Primary)
     );
@@ -195,8 +212,14 @@ export async function handleCreateQuizModal(interaction: ModalSubmitInteraction,
 }
 
 export async function handleQuizAnswer(interaction: ButtonInteraction): Promise<void> {
-  const [_, quizId, __, choiceIndex, choice] = interaction.customId.split(':');
-  const key = `quiz:${quizId}`;
+  const [_, quizId, __, choiceIndex, choice, guildId] = interaction.customId.split(':');
+  
+  if (!guildId) {
+    await interaction.reply({ content: "このコマンドはサーバー内でのみ使用できます。", flags: 'Ephemeral' });
+    return;
+  }
+
+  const key = `quiz:${guildId}:${quizId}`;
   const answeredKey = `${key}:answered`;
   const userId = interaction.user.id;
   
@@ -219,4 +242,44 @@ export async function handleQuizAnswer(interaction: ButtonInteraction): Promise<
     content: isCorrect ? "✅ 正解です！" : "❌ 不正解です。",
     flags: 'Ephemeral'
   });
+}
+
+export async function handleQuizExpired(key: string, client: Client) {
+  const quizId = key.split(':')[1];
+  const answerKey = `${key}:answer`;
+  const answer = await redis.get(answerKey);
+  
+  if (!answer) return;
+
+  const guildId = key.split(':')[2];
+  if (!guildId) {
+    console.error('ギルドIDが見つかりません。');
+    return;
+  }
+
+  const quizChannelId = await redis.get(`quiz_channel:${guildId}`);
+  if (!quizChannelId) {
+    console.error('クイズチャンネルが設定されていません。');
+    return;
+  }
+
+  const quizChannel = await client.channels.fetch(quizChannelId);
+  if (!quizChannel?.isTextBased() || !(quizChannel instanceof TextChannel)) {
+    console.error('クイズチャンネルが見つからないか、テキストチャンネルではありません。');
+    return;
+  }
+
+  const messages = await quizChannel.messages.fetch({ limit: 200 });
+  const quizMessage = messages.find(msg => 
+    msg.embeds[0]?.footer?.text?.includes(`ID: ${quizId}`)
+  );
+
+  if (quizMessage) {
+    const expiredEmbed = new EmbedBuilder()
+      .setTitle('クイズが終了しました！')
+      .setDescription(`正答は「${answer}」でした！`)
+      .setColor('#ff0000')
+      .setTimestamp();
+    await quizMessage.reply({ embeds: [expiredEmbed] });
+  }
 }
