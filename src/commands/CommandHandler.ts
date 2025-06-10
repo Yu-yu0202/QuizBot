@@ -3,24 +3,38 @@ import {
   ApplicationCommandDataResolvable, 
   ChatInputCommandInteraction,
   ButtonInteraction,
-  ModalSubmitInteraction
+  ModalSubmitInteraction,
+  PermissionFlagsBits,
+  ChannelType
 } from "discord.js";
 import { ping } from "./ping";
 import { CreateQuiz, handleCreateQuizModal, handleQuizAnswer } from "./CreateQuiz";
 import { execute as Setting } from "./Setting";
+
 export const commands: ApplicationCommandDataResolvable[] = [
   new SlashCommandBuilder()
     .setName('ping')
     .setDescription('Botのpingを表示します')
     .toJSON(),
   new SlashCommandBuilder()
-    .setName('createquiz')
-    .setDescription('新しいクイズを作成します')
-    .toJSON(),
+    .setName('create-quiz')
+    .setDescription('クイズを作成します'),
   new SlashCommandBuilder()
     .setName('setting')
     .setDescription('ボットの設定を行います')
-    .toJSON()
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName('quiz-channel')
+        .setDescription('クイズを送信するチャンネルを設定します')
+        .addChannelOption(option =>
+          option
+            .setName('channel')
+            .setDescription('クイズを送信するチャンネル')
+            .setRequired(true)
+            .addChannelTypes(ChannelType.GuildText)
+        )
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 ];
 
 export async function handleInteraction(interaction: ChatInputCommandInteraction | ButtonInteraction | ModalSubmitInteraction) {
@@ -29,7 +43,7 @@ export async function handleInteraction(interaction: ChatInputCommandInteraction
       case 'ping':
         await ping(interaction);
         break;
-      case 'createquiz':
+      case 'create-quiz':
         await CreateQuiz(interaction);
         break;
       case 'setting':
