@@ -51,6 +51,11 @@ async function saveToRedis(data: QuizData, ttlStr: string, guildId: string): Pro
   const ttl = parseTTL(ttlStr);
   const key = `quiz:${guildId}:${data.id}`;
   
+  console.log('[debug] Saving to Redis:');
+  console.log('[debug] Main key:', key);
+  console.log('[debug] Answer key:', `${key}:answer`);
+  console.log('[debug] Answered key:', `${key}:answered`);
+  
   await redis.hmset(key, {
     title: data.title,
     description: data.description,
@@ -262,6 +267,11 @@ export async function handleQuizExpired(key: string, client: Client) {
   
   const answerKey = `quiz:${guildId}:${quizId}:answer`;
   const answeredKey = `quiz:${guildId}:${quizId}:answered`;
+  
+  console.log('[debug] Checking Redis keys:');
+  console.log('[debug] Main key:', key);
+  console.log('[debug] Answer key:', answerKey);
+  console.log('[debug] Answered key:', answeredKey);
   
   const answer = await redis.get(answerKey);
   console.log('[debug] Answer from Redis:', answer);
