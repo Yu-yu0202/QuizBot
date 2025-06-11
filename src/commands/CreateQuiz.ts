@@ -63,7 +63,6 @@ async function saveToRedis(data: QuizData, ttlStr: string, guildId: string): Pro
   });
   await redis.expire(key, ttl);
   await redis.set(`${key}:answer`, data.answer);
-  await redis.expire(`${key}:answer`, ttl);
   await redis.sadd(`${key}:answered`, 'null');
   await redis.expire(`${key}:answered`, ttl);
 }
