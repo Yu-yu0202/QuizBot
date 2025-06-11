@@ -12,7 +12,7 @@ export async function startRedisKeyExpiredHandler(client: Client) {
 
         subscriber.on("pmessage", async (_pattern, _channel, key) => {
             try {
-                if (key.startsWith("quiz:") && !key.includes(":")) {
+                if (key.startsWith("quiz:") && key.split(":").length === 3) {
                     await handleQuizExpired(key, client);
                     await redis.del(key);
                 }

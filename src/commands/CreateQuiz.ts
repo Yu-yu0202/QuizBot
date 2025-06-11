@@ -254,13 +254,12 @@ export async function handleQuizAnswer(interaction: ButtonInteraction): Promise<
 }
 
 export async function handleQuizExpired(key: string, client: Client) {
-  const quizId = key.split(':')[1];
+  const [_, guildId, quizId] = key.split(':');
   const answerKey = `${key}:answer`;
   const answer = await redis.get(answerKey);
   
   if (!answer) return;
 
-  const guildId = key.split(':')[2];
   if (!guildId) {
     console.error('ギルドIDが見つかりません。');
     return;
