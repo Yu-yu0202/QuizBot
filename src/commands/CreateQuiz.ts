@@ -121,17 +121,17 @@ export async function handleCreateQuizModal(interaction: ModalSubmitInteraction,
 
   const choices = choicesStr.split(',').map(choice => choice.trim());
   if (choices.length < 2) {
-    await interaction.reply({ content: '選択肢は2つ以上必要です。', ephemeral: true });
+    await interaction.reply({ content: '選択肢は2つ以上必要です。', flags: 'Ephemeral' });
     return;
   }
 
   if (!choices.includes(answer)) {
-    await interaction.reply({ content: '正解の選択肢は選択肢リストに含まれている必要があります。', ephemeral: true });
+    await interaction.reply({ content: '正解の選択肢は選択肢リストに含まれている必要があります。', flags: 'Ephemeral' });
     return;
   }
 
   if (!/^\d+[smhdw](\d+[smhdw])*$/.test(ttl)) {
-    await interaction.reply({ content: '期限の形式が正しくありません。例: 1h30m', ephemeral: true });
+    await interaction.reply({ content: '期限の形式が正しくありません。例: 1h30m', flags: 'Ephemeral' });
     return;
   }
 
@@ -155,7 +155,7 @@ export async function handleCreateQuizModal(interaction: ModalSubmitInteraction,
     if (!quizChannelId) {
       await interaction.reply({ 
         content: 'このサーバーではクイズチャンネルが設定されていません。管理者に `/setting quiz-channel` コマンドで設定してもらってください。', 
-        ephemeral: true 
+        flags: 'Ephemeral' 
       });
       return;
     }
@@ -204,10 +204,10 @@ export async function handleCreateQuizModal(interaction: ModalSubmitInteraction,
       .setColor('#00ff00')
       .setTimestamp();
 
-    await interaction.reply({ embeds: [successEmbed], ephemeral: true });
+    await interaction.reply({ embeds: [successEmbed], flags: 'Ephemeral' });
   } catch (error) {
     console.error('クイズ作成エラー:', error);
-    await interaction.reply({ content: 'クイズの作成中にエラーが発生しました。', ephemeral: true });
+    await interaction.reply({ content: 'クイズの作成中にエラーが発生しました。', flags: 'Ephemeral' });
   }
 }
 
@@ -254,7 +254,10 @@ export async function handleQuizAnswer(interaction: ButtonInteraction): Promise<
 }
 
 export async function handleQuizExpired(key: string, client: Client) {
-  const [_, guildId, quizId] = key.split(':');
+  const parts = key.split(':');
+  const guildId = parts[1];
+  const quizId = parts[2];
+  
   const answerKey = `${key}:answer`;
   const answeredKey = `${key}:answered`;
   
