@@ -293,7 +293,7 @@ export async function handleQuizExpired(key: string, client: Client) {
     return;
   }
 
-  const messages = await quizChannel.messages.fetch({ limit: 200 });
+  const messages = await quizChannel.messages.fetch({ limit: 100 });
   const quizMessage = messages.find(msg => 
     msg.embeds[0]?.footer?.text?.includes(`ID: ${quizId}`)
   );
@@ -308,7 +308,6 @@ export async function handleQuizExpired(key: string, client: Client) {
     await quizMessage.reply({ embeds: [expiredEmbed] });
   }
 
-  // Clean up all related keys
   await redis.del(key);
   await redis.del(answerKey);
   await redis.del(answeredKey);
