@@ -10,7 +10,7 @@ export async function startRedisKeyExpiredHandler(client: Client) {
     try {
         await subscriber.psubscribe("__keyevent@0__:expired");
 
-        subscriber.on("pmessage", async (pattern, channel, key) => {
+        subscriber.on("pmessage", async (_pattern, _channel, key) => {
             try {
                 if (key.startsWith("quiz:") && !key.includes(":")) {
                     await handleQuizExpired(key, client);
