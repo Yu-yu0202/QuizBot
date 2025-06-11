@@ -5,22 +5,15 @@ import { Client } from "discord.js";
 const redis = new Redis();
 
 export async function startRedisKeyExpiredHandler(client: Client) {
-    const subscriber = new Redis({
-        host: process.env.REDIS_HOST || "localhost",
-        port: parseInt(process.env.REDIS_PORT || "6379", 10),
-    });
-    subscriber.on("connect", () => {
-        console.log("[Redis] Subscriber connected successfully.");
-    });
+    const subscriber = new Redis();
+
     try {
         await subscriber.psubscribe("__keyevent@0__:expired");
 
         subscriber.on("pmessage", async (_pattern, _channel, key) => {
             try {
-                if (key.startsWith("quiz:") && key.split(":").length === 3) {
-                    console.log(`[Redis] Key expired: ${key}`);
+                if (key.startsWith("quiz:")) {
                     await handleQuizExpired(key, client);
-                    await redis.del(key);
                 }
             } catch (error) {
                 console.error('[Redis] Error handling expired key:', error);

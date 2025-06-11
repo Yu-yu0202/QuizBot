@@ -51,11 +51,6 @@ async function saveToRedis(data: QuizData, ttlStr: string, guildId: string): Pro
   const ttl = parseTTL(ttlStr);
   const key = `quiz:${guildId}:${data.id}`;
   
-  console.log('[debug] Saving to Redis:');
-  console.log('[debug] Main key:', key);
-  console.log('[debug] Answer key:', `${key}:answer`);
-  console.log('[debug] Answered key:', `${key}:answered`);
-  
   await redis.hmset(key, {
     title: data.title,
     description: data.description,
@@ -258,22 +253,14 @@ export async function handleQuizAnswer(interaction: ButtonInteraction): Promise<
 }
 
 export async function handleQuizExpired(key: string, client: Client) {
-  console.log('[debug] handleQuizExpired called with key:', key);
   const parts = key.split(':');
-  console.log('[debug] Key parts:', parts);
   const guildId = parts[1];
   const quizId = parts[2];
   
   const answerKey = `quiz:${guildId}:${quizId}:answer`;
   const answeredKey = `quiz:${guildId}:${quizId}:answered`;
   
-  console.log('[debug] Checking Redis keys:');
-  console.log('[debug] Main key:', key);
-  console.log('[debug] Answer key:', answerKey);
-  console.log('[debug] Answered key:', answeredKey);
-  
   const answer = await redis.get(answerKey);
-  console.log('[debug] Answer from Redis:', answer);
   if (!answer) return;
 
   if (!guildId) {
@@ -297,7 +284,6 @@ export async function handleQuizExpired(key: string, client: Client) {
   const quizMessage = messages.find(msg => 
     msg.embeds[0]?.footer?.text?.includes(`ID: ${quizId}`)
   );
-  console.log('[debug] Quiz Message Find:', quizMessage);
 
   if (quizMessage) {
     const expiredEmbed = new EmbedBuilder()
