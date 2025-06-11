@@ -256,24 +256,25 @@ export async function handleQuizAnswer(interaction: ButtonInteraction): Promise<
 export async function handleQuizExpired(key: string, client: Client) {
   const [_, guildId, quizId] = key.split(':');
   const answerKey = `${key}:answer`;
-  const answer = await redis.get(answerKey);
+  const answeredKey = `${key}:answered`;
   
+  const answer = await redis.get(answerKey);
   if (!answer) return;
 
   if (!guildId) {
-    console.error('ギルドIDが見つかりません。');
+    console.error('[Redis] Guild ID not found');
     return;
   }
 
   const quizChannelId = await redis.get(`quiz_channel:${guildId}`);
   if (!quizChannelId) {
-    console.error('クイズチャンネルが設定されていません。');
+    console.error('[Redis] Quiz channel not set');
     return;
   }
 
   const quizChannel = await client.channels.fetch(quizChannelId);
   if (!quizChannel?.isTextBased() || !(quizChannel instanceof TextChannel)) {
-    console.error('クイズチャンネルが見つからないか、テキストチャンネルではありません。');
+    console.error('[Redis] Quiz channel not found or not a text channel');
     return;
   }
 
@@ -290,4 +291,9 @@ export async function handleQuizExpired(key: string, client: Client) {
       .setTimestamp();
     await quizMessage.reply({ embeds: [expiredEmbed] });
   }
+
+  // Clean up all related keys
+  await redis.del(key);
+  await redis.del(answerKey);
+  await redis.del(answeredKey);
 }

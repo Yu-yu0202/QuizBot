@@ -13,20 +13,21 @@ export async function startRedisKeyExpiredHandler(client: Client) {
         subscriber.on("pmessage", async (_pattern, _channel, key) => {
             try {
                 if (key.startsWith("quiz:") && key.split(":").length === 3) {
+                    console.log(`[Redis] Key expired: ${key}`);
                     await handleQuizExpired(key, client);
                     await redis.del(key);
                 }
             } catch (error) {
-                console.error('クイズ終了処理エラー:', error);
+                console.error('[Redis] Error handling expired key:', error);
             }
         });
 
         subscriber.on("error", (error) => {
-            console.error("Redis subscriber error:", error);
+            console.error("[Redis] Subscriber error:", error);
         });
 
     } catch (error) {
-        console.error("Redis接続エラー:", error);
+        console.error("[Redis] Connection error:", error);
         throw error;
     }
 }
