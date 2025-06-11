@@ -260,8 +260,8 @@ export async function handleQuizExpired(key: string, client: Client) {
   const guildId = parts[1];
   const quizId = parts[2];
   
-  const answerKey = `${key}:answer`;
-  const answeredKey = `${key}:answered`;
+  const answerKey = `quiz:${guildId}:${quizId}:answer`;
+  const answeredKey = `quiz:${guildId}:${quizId}:answered`;
   
   const answer = await redis.get(answerKey);
   console.log('[debug] Answer from Redis:', answer);
