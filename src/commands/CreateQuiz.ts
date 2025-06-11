@@ -254,7 +254,9 @@ export async function handleQuizAnswer(interaction: ButtonInteraction): Promise<
 }
 
 export async function handleQuizExpired(key: string, client: Client) {
+  console.log('[debug] handleQuizExpired called with key:', key);
   const parts = key.split(':');
+  console.log('[debug] Key parts:', parts);
   const guildId = parts[1];
   const quizId = parts[2];
   
@@ -262,6 +264,7 @@ export async function handleQuizExpired(key: string, client: Client) {
   const answeredKey = `${key}:answered`;
   
   const answer = await redis.get(answerKey);
+  console.log('[debug] Answer from Redis:', answer);
   if (!answer) return;
 
   if (!guildId) {
