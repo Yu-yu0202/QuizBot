@@ -285,6 +285,7 @@ export async function handleQuizExpired(key: string, client: Client) {
   const quizMessage = messages.find(msg => 
     msg.embeds[0]?.footer?.text?.includes(`ID: ${quizId}`)
   );
+  console.log('[debug] Quiz Message Find:', quizMessage);
 
   if (quizMessage) {
     const expiredEmbed = new EmbedBuilder()
