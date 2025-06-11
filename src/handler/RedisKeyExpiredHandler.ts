@@ -5,8 +5,13 @@ import { Client } from "discord.js";
 const redis = new Redis();
 
 export async function startRedisKeyExpiredHandler(client: Client) {
-    const subscriber = new Redis();
-
+    const subscriber = new Redis({
+        host: process.env.REDIS_HOST || "localhost",
+        port: parseInt(process.env.REDIS_PORT || "6379", 10),
+    });
+    subscriber.on("connect", () => {
+        console.log("[Redis] Subscriber connected successfully.");
+    });
     try {
         await subscriber.psubscribe("__keyevent@0__:expired");
 
