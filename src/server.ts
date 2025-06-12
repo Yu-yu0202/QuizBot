@@ -18,7 +18,6 @@ console.log('Looking for .env file at:', envPath);
 
 dotenv.config({ path: envPath });
 
-// トークンの読み込み確認
 if (!process.env.DISCORD_TOKEN) {
     console.error('DISCORD_TOKENが設定されていません！');
     console.error('Current working directory:', process.cwd());
@@ -26,10 +25,6 @@ if (!process.env.DISCORD_TOKEN) {
 }
 if (!process.env.CLIENT_ID) {
     console.error('CLIENT_IDが設定されていません！');
-    process.exit(1);
-}
-if (!process.env.QUIZ_CHANNEL_ID) {
-    console.error('QUIZ_CHANNEL_IDが設定されていません！');
     process.exit(1);
 }
 
