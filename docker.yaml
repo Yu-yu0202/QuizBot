@@ -12,12 +12,14 @@ spec:
       labels:
         app: quizbot
     spec:
+      imagePullSecrets:
+        - name: regcred
       containers:
       - name: quizbot
         image: yuyu0202/quizbot:latest
         imagePullPolicy: Always
         ports:
-        - containerPort: 3000
+          - containerPort: 3000
         env:
         - name: NODE_ENV
           value: production
