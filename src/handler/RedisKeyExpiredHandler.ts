@@ -1,8 +1,6 @@
-import Redis from "ioredis";
-import { handleQuizExpired } from "../commands/CreateQuiz";
+import { Redis } from "ioredis";
+import { handleQuizExpired } from "../commands/CreateQuiz.js";
 import { Client } from "discord.js";
-
-const redis = new Redis();
 
 export async function startRedisKeyExpiredHandler(client: Client) {
     const subscriber = new Redis();
@@ -10,7 +8,7 @@ export async function startRedisKeyExpiredHandler(client: Client) {
     try {
         await subscriber.psubscribe("__keyevent@0__:expired");
 
-        subscriber.on("pmessage", async (_pattern, _channel, key) => {
+        subscriber.on("pmessage", async (_pattern: any, _channel: any, key: string) => {
             try {
                 if (key.startsWith("quiz:")) {
                     await handleQuizExpired(key, client);
@@ -20,7 +18,7 @@ export async function startRedisKeyExpiredHandler(client: Client) {
             }
         });
 
-        subscriber.on("error", (error) => {
+        subscriber.on("error", (error: any) => {
             console.error("[Redis] Subscriber error:", error);
         });
 

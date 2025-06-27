@@ -4,7 +4,7 @@
   "description": "",
   "license": "BSD-3-Clause",
   "author": "Yu-yu0202",
-  "type": "commonjs",
+  "type": "module",
   "main": "dist/server.js",
   "scripts": {
     "dev": "npx ts-node src/server.ts",

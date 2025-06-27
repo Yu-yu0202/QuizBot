@@ -13,7 +13,7 @@ import {
   Client,
   TextChannel
 } from "discord.js";
-import Redis from "ioredis";
+import { Redis } from "ioredis";
 import { v4 as uuidv4 } from "uuid";
 import * as dotenv from 'dotenv';
 import * as path from 'path';

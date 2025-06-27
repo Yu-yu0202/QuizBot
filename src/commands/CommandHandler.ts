@@ -7,9 +7,9 @@ import {
   PermissionFlagsBits,
   ChannelType
 } from "discord.js";
-import { ping } from "./ping";
-import { CreateQuiz, handleCreateQuizModal, handleQuizAnswer } from "./CreateQuiz";
-import { execute as Setting } from "./Setting";
+import { ping } from "./ping.js";
+import { CreateQuiz, handleCreateQuizModal, handleQuizAnswer } from "./CreateQuiz.js";
+import { execute as Setting } from "./Setting.js";
 
 export const commands: ApplicationCommandDataResolvable[] = [
   new SlashCommandBuilder()
