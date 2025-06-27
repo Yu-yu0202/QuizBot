@@ -9,9 +9,9 @@ import {
     ButtonInteraction,
     ModalSubmitInteraction
 } from "discord.js";
-import { commands, handleInteraction } from './commands/CommandHandler';
+import { commands, handleInteraction } from './commands/CommandHandler.js';
 import * as path from 'path';
-import { startRedisKeyExpiredHandler } from './handler/RedisKeyExpiredHandler';
+import { startRedisKeyExpiredHandler } from './handler/RedisKeyExpiredHandler.js';
 
 const envPath = path.resolve(process.cwd(), '.env');
 console.log('Looking for .env file at:', envPath);
