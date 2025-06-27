@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "npx ts-node src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "build:docker": "docker buildx build --network=host -t yuyu0202/quizbot:latest ."
   },
   "devDependencies": {
     "typescript": "^5.8.3"

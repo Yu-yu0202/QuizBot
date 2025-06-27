@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quizbot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quizbot
+  template:
+    metadata:
+      labels:
+        app: quizbot
+    spec:
+      containers:
+      - name: quizbot
+        image: yuyu0202/quizbot:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NODE_ENV
+          value: production
