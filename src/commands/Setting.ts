@@ -1,7 +1,5 @@
 import { ChatInputCommandInteraction } from 'discord.js';
-import { Redis } from 'ioredis';
-
-const redis = new Redis();
+import redis from '../utils/redis.js';
 
 export async function execute(interaction: ChatInputCommandInteraction) {
     if (!interaction.guildId) {

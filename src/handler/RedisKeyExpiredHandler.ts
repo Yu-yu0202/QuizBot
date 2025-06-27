@@ -1,10 +1,8 @@
-import { Redis } from "ioredis";
+import { subscriber }  from "../utils/redis.js";
 import { handleQuizExpired } from "../commands/CreateQuiz.js";
 import { Client } from "discord.js";
 
 export async function startRedisKeyExpiredHandler(client: Client) {
-    const subscriber = new Redis();
-
     try {
         await subscriber.psubscribe("__keyevent@0__:expired");
 

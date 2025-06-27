@@ -13,14 +13,12 @@ import {
   Client,
   TextChannel
 } from "discord.js";
-import { Redis } from "ioredis";
+import redis from "../utils/redis.js";
 import { v4 as uuidv4 } from "uuid";
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-
-const redis = new Redis();
 
 interface QuizData {
   id: string;
